@@ -1,0 +1,7 @@
+Polices hébergées localement pour le fonctionnement hors ligne.
+Toutes sont distribuées sous SIL Open Font License 1.1 (https://openfontlicense.org).
+
+- Andika — © 2004-2022 SIL International
+- Playwrite FR Moderne — © 2023 The Playwrite Project Authors (TypeTogether)
+
+Fichiers obtenus via Google Fonts (sous-ensemble latin).

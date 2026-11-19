@@ -1,0 +1,261 @@
+/*
+ * style.css — Un cahier de poésie d'écolier : papier Seyès, marge rouge, encre bleue,
+ * une couleur de crayon par strophe, et des gommettes dans la marge.
+ * Règles : pas de défilement pendant la séance, gros boutons, aucun survol nécessaire.
+ */
+
+@font-face { font-family: 'Andika'; src: url('../fonts/andika-400.woff2') format('woff2'); font-weight: 400; font-display: swap; }
+@font-face { font-family: 'Andika'; src: url('../fonts/andika-700.woff2') format('woff2'); font-weight: 700; font-display: swap; }
+@font-face { font-family: 'Playwrite FR Moderne'; src: url('../fonts/playwrite-fr-moderne.woff2') format('woff2'); font-display: swap; }
+
+:root {
+  --papier: #fffef8;
+  --ligne: #e4eaf7;
+  --ligne-forte: #c9d5ef;
+  --marge: #e05d52;
+  --encre: #1f3b8c;
+  --encre-pale: #8a9bc9;
+  --graphite: #2b2d42;
+  --gris: #6b6f85;
+  --ok: #2f8f46;
+  --ok-fond: #e3f4e6;
+  --ko: #c4454b;
+  --ko-fond: #fbe7e7;
+  --c0: #e63946; --c1: #2a9d8f; --c2: #e39400; --c3: #7b4fbf; --c4: #3a86ff; --c5: #f06d00;
+  --u: 10px;                 /* petit carreau Seyès */
+  --marge-x: 76px;
+  --police: 'Andika', system-ui, sans-serif;
+  --plume: 'Playwrite FR Moderne', 'Andika', cursive;
+  --rayon: 18px;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body {
+  font-family: var(--police);
+  font-size: 22px;
+  line-height: 1.4;
+  color: var(--graphite);
+  background: #dfe6f3;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+}
+[hidden] { display: none !important; }
+button, input { font: inherit; color: inherit; }
+
+/* ---------- La page de cahier ---------- */
+.page {
+  position: relative;
+  height: 100dvh;
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  padding: 14px 20px 18px calc(var(--marge-x) + 18px);
+  background-color: var(--papier);
+  background-image:
+    linear-gradient(to right, transparent calc(var(--marge-x) - 1px), var(--marge) calc(var(--marge-x) - 1px), var(--marge) calc(var(--marge-x) + 1px), transparent calc(var(--marge-x) + 1px)),
+    repeating-linear-gradient(to bottom, transparent 0 calc(4 * var(--u) - 1px), var(--ligne-forte) calc(4 * var(--u) - 1px) calc(4 * var(--u))),
+    repeating-linear-gradient(to bottom, transparent 0 calc(var(--u) - 1px), var(--ligne) calc(var(--u) - 1px) var(--u));
+  overflow: hidden;
+}
+.page.defile { overflow-y: auto; }
+
+/* La marge : gommettes et bouton adulte */
+.marge {
+  position: absolute; left: 0; top: 0; bottom: 0; width: var(--marge-x);
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  padding: 14px 0; overflow: hidden;
+}
+.marge .gommette { width: 44px; height: 44px; flex: none; }
+.marge .gommette.nouvelle { animation: colle 700ms cubic-bezier(.2,1.6,.4,1) both; }
+.marge .adulte {
+  margin-top: auto; width: 56px; height: 56px; border-radius: 50%;
+  border: 2px solid var(--encre-pale); background: var(--papier); color: var(--encre);
+  display: grid; place-items: center; font-size: 15px;
+}
+@keyframes colle { from { transform: scale(0) rotate(-40deg); } to { transform: scale(1) rotate(0); } }
+
+/* ---------- Textes ---------- */
+.titre-poesie {
+  font-family: var(--plume);
+  font-size: clamp(30px, 4.6vw, 46px);
+  color: var(--encre);
+  line-height: 1.5;
+  margin: 8px 0 0;
+}
+.auteur { color: var(--gris); margin: 0 0 6px; font-size: 20px; }
+.compte { font-size: 26px; margin: 10px 0; }
+.compte b { font-size: 44px; color: var(--encre); font-weight: 700; }
+.consigne { font-size: 24px; color: var(--graphite); margin: 6px 0; }
+
+/* ---------- Le chemin des strophes ---------- */
+.chemin { display: flex; gap: 14px; flex-wrap: wrap; margin: 18px 0; }
+.etape {
+  --c: var(--c0);
+  display: flex; align-items: center; gap: 10px;
+  min-width: 120px; padding: 10px 18px 10px 12px;
+  border-radius: 999px;
+  border: 3px dashed color-mix(in srgb, var(--c) 45%, transparent);
+  color: var(--gris); font-weight: 700; font-size: 20px; background: transparent;
+}
+.etape .rep { font-size: 30px; line-height: 1; filter: grayscale(1) opacity(.5); }
+.etape .rep img { width: 40px; height: 40px; object-fit: cover; border-radius: 8px; }
+.etape.apprise { border-style: solid; border-color: var(--c); color: var(--graphite); }
+.etape.apprise .rep, .etape.sue .rep { filter: none; }
+.etape.sue { border: 3px solid var(--c); background: var(--c); color: #fff; }
+.etape .coche { margin-left: 2px; }
+
+/* ---------- Boutons ---------- */
+.actions { display: flex; gap: 16px; margin-top: auto; padding-top: 12px; flex-wrap: wrap; }
+.actions > * { flex: 1 1 0; }
+.btn {
+  min-height: 76px; padding: 12px 22px;
+  border-radius: var(--rayon); border: 3px solid var(--encre);
+  background: var(--papier); color: var(--encre);
+  font-size: 26px; font-weight: 700;
+  display: inline-flex; align-items: center; justify-content: center; gap: 12px;
+  box-shadow: 0 5px 0 var(--encre);
+  transition: transform 80ms, box-shadow 80ms;
+  touch-action: manipulation;
+}
+.btn:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--encre); }
+.btn svg { width: 34px; height: 34px; flex: none; }
+.btn.plein { background: var(--encre); color: #fff; }
+.btn.ok { border-color: var(--ok); background: var(--ok); color: #fff; box-shadow: 0 5px 0 #1d5e2d; }
+.btn.ko { border-color: var(--ko); color: var(--ko); box-shadow: 0 5px 0 var(--ko); background: var(--papier); }
+.btn.discret { border-color: var(--encre-pale); color: var(--encre); box-shadow: 0 5px 0 var(--encre-pale); }
+.btn.grand { min-height: 110px; font-size: 34px; }
+.btn.petit { min-height: 56px; font-size: 20px; padding: 8px 16px; box-shadow: 0 3px 0 currentColor; flex: none; }
+.btn:focus-visible, .icone:focus-visible, .adulte:focus-visible { outline: 4px solid var(--c4); outline-offset: 3px; }
+.btn[disabled] { opacity: .4; }
+
+.icone {
+  width: 60px; height: 60px; border-radius: 50%; border: 2px solid var(--encre-pale);
+  background: var(--papier); color: var(--encre); display: grid; place-items: center; flex: none;
+}
+.icone svg { width: 30px; height: 30px; }
+
+/* ---------- Séance ---------- */
+.barre { display: flex; align-items: center; gap: 14px; }
+.avance { flex: 1; height: 14px; border-radius: 7px; background: var(--ligne); overflow: hidden; }
+.avance i { display: block; height: 100%; background: var(--encre); border-radius: 7px; transition: width 300ms; }
+.puce {
+  --c: var(--c0);
+  display: inline-flex; align-items: center; gap: 8px; align-self: flex-start;
+  margin-top: 14px; padding: 4px 14px; border-radius: 999px;
+  background: color-mix(in srgb, var(--c) 14%, var(--papier)); color: color-mix(in srgb, var(--c) 80%, #000);
+  font-weight: 700; font-size: 20px;
+}
+.puce::before { content: ''; width: 14px; height: 14px; border-radius: 50%; background: var(--c); }
+
+.scene { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: center; gap: 6px; }
+.repere-grand { font-size: 96px; line-height: 1; margin-bottom: 8px; }
+.repere-grand img { width: 160px; height: 160px; object-fit: cover; border-radius: 16px; border: 3px solid var(--ligne-forte); }
+.repere-moyen { font-size: 44px; line-height: 1; margin-bottom: 4px; }
+.repere-moyen img { width: 64px; height: 64px; object-fit: cover; border-radius: 10px; border: 2px solid var(--ligne-forte); }
+.vers-avant { color: var(--encre-pale); font-size: 26px; }
+.vers {
+  font-size: clamp(30px, 4.4vw, 44px);
+  line-height: 1.55;
+  color: var(--encre);
+  min-height: 1.55em;
+  margin: 0;
+}
+.strophe .vers { font-size: clamp(24px, 3.4vw, 34px); }
+.vers.lu { background: color-mix(in srgb, var(--c4) 16%, transparent); border-radius: 8px; box-shadow: -10px 0 0 color-mix(in srgb, var(--c4) 16%, transparent), 10px 0 0 color-mix(in srgb, var(--c4) 16%, transparent); }
+.vers .trou {
+  display: inline-block; height: .9em; vertical-align: -.1em;
+  border-bottom: 3px dotted var(--encre-pale);
+}
+.vers .ini { font-weight: 700; }
+.vers .ini-suite { display: inline-block; vertical-align: -.1em; height: .9em; border-bottom: 2px dotted var(--encre-pale); }
+.vers.vide { border-bottom: 2px dashed var(--ligne-forte); width: min(70%, 520px); }
+.vers.revele { animation: encre 450ms ease-out both; }
+@keyframes encre { from { opacity: 0; filter: blur(4px); } to { opacity: 1; filter: none; } }
+
+/* ---------- Fin ---------- */
+.fin { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 10px; }
+.fin .gommette { width: 160px; height: 160px; animation: colle 800ms cubic-bezier(.2,1.6,.4,1) both; }
+.fin h1 { font-family: var(--plume); color: var(--encre); font-size: 40px; font-weight: 400; margin: 10px 0 0; line-height: 1.6; }
+.fin p { font-size: 26px; margin: 0; }
+
+/* ---------- Découverte et espace parent (adulte : le défilement est permis) ---------- */
+.bloc { margin: 14px 0; }
+.bloc h2 { font-size: 22px; color: var(--encre); margin: 18px 0 6px; }
+.strophe-lecture { margin: 10px 0 18px; padding-left: 14px; border-left: 6px solid var(--c, var(--c0)); }
+.strophe-lecture .vers { font-size: 28px; }
+.geste { color: var(--gris); font-size: 19px; margin: 4px 0 0; }
+.note {
+  background: color-mix(in srgb, var(--c2) 12%, var(--papier)); border-left: 6px solid var(--c2);
+  padding: 10px 14px; border-radius: 0 10px 10px 0; font-size: 19px; margin: 12px 0;
+}
+.mots { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.mots li { display: flex; align-items: center; gap: 10px; }
+
+.onglets { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0 4px; }
+.onglets button {
+  min-height: 52px; padding: 6px 18px; border-radius: 999px; border: 2px solid var(--encre-pale);
+  background: var(--papier); font-weight: 700; color: var(--encre);
+}
+.onglets button[aria-selected="true"] { background: var(--encre); color: #fff; border-color: var(--encre); }
+.ligne-soir { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 8px 0; border-bottom: 1px solid var(--ligne-forte); }
+.ligne-soir .nom { flex: 1 1 180px; font-weight: 700; }
+.choix { display: flex; gap: 8px; }
+.choix button { min-height: 56px; min-width: 96px; border-radius: 14px; border: 2px solid var(--encre-pale); background: var(--papier); font-weight: 700; }
+.choix button[aria-pressed="true"][data-n="sue"] { background: var(--ok); border-color: var(--ok); color: #fff; }
+.choix button[aria-pressed="true"][data-n="hesite"] { background: var(--c2); border-color: var(--c2); color: #fff; }
+.choix button[aria-pressed="true"][data-n="pas"] { background: var(--ko); border-color: var(--ko); color: #fff; }
+table.planning { border-collapse: collapse; width: 100%; font-size: 18px; }
+.planning td, .planning th { padding: 6px 8px; border-bottom: 1px solid var(--ligne-forte); text-align: left; }
+.planning tr.auj { background: color-mix(in srgb, var(--c4) 12%, transparent); }
+.champ { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 10px 0; }
+.champ input[type=date], .champ input[type=number] {
+  min-height: 52px; padding: 6px 12px; border-radius: 12px; border: 2px solid var(--encre-pale); background: #fff; font-size: 22px;
+}
+.alerte { color: var(--ko); font-weight: 700; }
+.calme { color: var(--ok); font-weight: 700; }
+.photo-rep { width: 90px; height: 90px; object-fit: cover; border-radius: 12px; border: 2px solid var(--ligne-forte); }
+
+/* ---------- Toast ---------- */
+.toast {
+  position: fixed; left: 50%; top: 22%; transform: translateX(-50%);
+  padding: 14px 30px; border-radius: 999px; font-size: 32px; font-weight: 700;
+  background: var(--ok); color: #fff; box-shadow: 0 8px 24px rgb(0 0 0 / 15%);
+  animation: monte 900ms ease-out both; pointer-events: none;
+}
+.toast.doux { background: var(--encre); }
+@keyframes monte { 0% { opacity: 0; transform: translate(-50%, 16px); } 20% { opacity: 1; transform: translate(-50%, 0); } 80% { opacity: 1; } 100% { opacity: 0; } }
+
+/* ---------- Petits écrans et portrait ---------- */
+@media (max-width: 640px) {
+  :root { --marge-x: 52px; }
+  body { font-size: 19px; }
+  .marge .gommette { width: 32px; height: 32px; }
+  .marge .adulte { width: 46px; height: 46px; font-size: 11px; }
+  .btn { font-size: 22px; min-height: 68px; padding: 10px 14px; }
+  .btn.grand { min-height: 92px; font-size: 28px; }
+  .page { padding-left: calc(var(--marge-x) + 12px); padding-right: 14px; }
+}
+@media (max-height: 620px) {
+  .repere-grand { font-size: 64px; }
+  .btn { min-height: 64px; }
+  .btn.grand { min-height: 80px; }
+  .titre-poesie { font-size: 30px; margin-top: 0; }
+  .compte { margin: 4px 0; }
+  .chemin { margin: 8px 0; }
+  .strophe .vers { font-size: 24px; line-height: 1.4; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 1ms !important; transition-duration: 1ms !important; }
+}
+
+/* Image de la strophe au-dessus d'une strophe entière : plus petite, pour laisser la place aux vers. */
+.repere-grand.compact { font-size: 64px; margin-bottom: 2px; }
+.repere-grand.compact img { width: 104px; height: 104px; }
+@media (max-height: 620px) {
+  .repere-grand.compact { font-size: 44px; }
+  .repere-grand.compact img { width: 72px; height: 72px; }
+  .repere-moyen { font-size: 32px; }
+  .repere-moyen img { width: 48px; height: 48px; }
+}

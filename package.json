@@ -1,0 +1,13 @@
+{
+  "name": "poesie-par-coeur",
+  "version": "0.1.0",
+  "private": true,
+  "description": "PWA pour apprendre sa poésie par cœur (CE2), sans serveur ni compte.",
+  "scripts": {
+    "test": "node --test tests/*.test.js",
+    "voices": "node tools/make-voices.js",
+    "icons": "node tools/make-icons.js",
+    "serve": "node tools/serve.js"
+  },
+  "license": "MIT"
+}

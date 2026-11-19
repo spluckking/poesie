@@ -1,0 +1,25 @@
+// Poésie d'exemple (texte et auteur inventés) pour tester l'appli (aucun droit d'auteur).
+// Remplacer ce fichier par la poésie de la classe (voir CLAUDE.md).
+# L'escargot du jardin
+@ Lou Plume
+= 2026-12-03
+! le long du mur | en suivant le mur, tout du long
+! sucrée | qui a le goût du sucre
+
+> 🐌 | geste : une main sur le dos, comme une coquille
+Un petit escargot
+Grimpe le long du mur,
+Sa maison sur le dos,
+Il avance, c'est sûr.
+
+> 🌧️ | geste : les doigts qui tombent comme la pluie
+Quand la pluie vient chanter
+Sur les feuilles du chou,
+Il sort se promener
+Et dit bonjour à tous.
+
+> 🌙 | geste : les mains sous la joue pour dormir
+Le soir, sous la lune,
+Il rentre se coucher,
+Et rêve d'une prune
+Toute ronde et sucrée.

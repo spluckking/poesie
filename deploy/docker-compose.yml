@@ -1,0 +1,20 @@
+# Ma poésie — hébergement sur le serveur de la maison (HTTPS, réseau local).
+# Copier le dossier de l'appli sur le serveur (voir CLAUDE.md), puis :  docker compose up -d
+services:
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports:
+      - "443:443"
+      - "80:80"
+    environment:
+      # Nom de domaine qui pointe vers l'IP locale du serveur (ex. poesie.maison.example.fr)
+      - POESIE_HOST=${POESIE_HOST:?Définir POESIE_HOST dans deploy/.env}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./site:/srv/poesie:ro
+      - caddy_data:/data
+      - caddy_config:/config
+volumes:
+  caddy_data:
+  caddy_config:

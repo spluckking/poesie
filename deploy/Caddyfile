@@ -1,0 +1,17 @@
+# Certificat : Caddy l'obtient seul si POESIE_HOST est joignable depuis Internet sur le port 80.
+# Pour un nom accessible seulement en local, utiliser plutôt le défi DNS
+# (image Caddy avec le module de votre fournisseur DNS) ou `tls internal`
+# (certificat local, à installer comme autorité de confiance sur la tablette).
+{$POESIE_HOST} {
+	root * /srv/poesie
+	encode gzip
+	file_server
+
+	# Le fichier de la poésie et le service worker doivent toujours être frais.
+	@frais path /poesie.txt /sw.js /index.html /
+	header @frais Cache-Control "no-cache"
+
+	# Rien d'autre que l'appli n'est servi (pas d'outils, pas de .env).
+	@prive path /.* /tools/* /tests/* /docs/* /deploy/* /node_modules/* /package.json /CLAUDE.md /CONTEXT.md /skills-lock.json
+	respond @prive 404
+}
