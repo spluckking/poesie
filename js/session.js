@@ -4,6 +4,7 @@
  * Étapes (item.kind) :
  *   'ecoute'  : écouter une strophe nouvelle (2 fois), texte surligné
  *   'vers'    : dire un vers, au niveau d'indice item.level
+ *   'groupe'  : dire un groupe de sens (item.g) d'une strophe nouvelle
  *   'strophe' : dire une strophe entière, au niveau item.level
  *   'titre'   : dire le titre et l'auteur
  * Rôle (item.purpose) :
@@ -47,9 +48,15 @@
       apprises.forEach((s) => q.push({ kind: 'strophe', s, level: states[s].level, purpose: 'rappel', unit: 'r' + s }));
       info.nouvelles.forEach((n) => {
         const unit = 'n' + n;
+        const st = poem.strophes[n];
         q.push({ kind: 'ecoute', s: n, purpose: 'apprendre', unit });
-        poem.strophes[n].vers.forEach((_, v) => {
-          [0, 1, 2, 3].forEach((level) => q.push({ kind: 'vers', s: n, v, level, purpose: 'apprendre', unit }));
+        // Un groupe de sens à la fois (2 à 4 vers : la mémoire de travail d'un enfant de 8 ans),
+        // puis la strophe entière.
+        st.groupes.forEach((g, gi) => {
+          for (let v = g.debut; v < g.fin; v++) {
+            [0, 1, 2, 3].forEach((level) => q.push({ kind: 'vers', s: n, v, level, purpose: 'apprendre', unit }));
+          }
+          if (st.groupes.length > 1) q.push({ kind: 'groupe', s: n, g: gi, level: 2, purpose: 'apprendre', unit });
         });
         q.push({ kind: 'strophe', s: n, level: 2, purpose: 'apprendre', unit });
         if (n > 0 && (states[n - 1].intro || info.nouvelles.includes(n - 1))) {
@@ -87,7 +94,8 @@
       nouvelles: info.nouvelles.slice(),
       nextId: q.length,
       stopped: false,
-      _poemVers: poem.strophes.map((st) => st.vers)
+      _poemVers: poem.strophes.map((st) => st.vers),
+      _groupes: poem.strophes.map((st) => st.groupes.map((g) => [g.debut, g.fin]))
     };
   }
 
@@ -100,8 +108,19 @@
     return { done: session.history.length, total: session.history.length + session.queue.length };
   }
 
+  /** Les vers (indices dans la strophe) d'une étape strophe ou groupe. */
+  function itemVers(session, item) {
+    if (item.kind === 'groupe') {
+      const [a, b] = session._groupes[item.s][item.g];
+      return Array.from({ length: b - a }, (_, i) => a + i);
+    }
+    return session._poemVers[item.s].map((_, v) => v);
+  }
+
   /**
-   * Réponse à l'étape en cours : { ok, souffle }.
+   * Réponse à l'étape en cours : { ok, souffle, missed }.
+   * missed : pour une strophe ou un groupe raté, les vers que l'enfant a désignés comme oubliés
+   * (indices dans la strophe) ; vide ou absent = tous.
    * 'ecoute' et les niveaux 0-1 (lecture) se valident avec ok = true.
    */
   function answer(session, result, now) {
@@ -123,9 +142,11 @@
       if (item.kind === 'vers') {
         if (item.level > 0) extra.push(mark({ kind: 'vers', s: item.s, v: item.v, level: lower }));
         extra.push(mark({ kind: 'vers', s: item.s, v: item.v, level: item.level }));
-      } else if (item.kind === 'strophe') {
-        session._poemVers[item.s].forEach((_, v) => extra.push(mark({ kind: 'vers', s: item.s, v, level: lower })));
-        extra.push(mark({ kind: 'strophe', s: item.s, level: item.level }));
+      } else if (item.kind === 'strophe' || item.kind === 'groupe') {
+        const all = itemVers(session, item);
+        const missed = (result.missed || []).filter((v) => all.includes(v));
+        (missed.length ? missed : all).forEach((v) => extra.push(mark({ kind: 'vers', s: item.s, v, level: lower })));
+        extra.push(mark({ kind: item.kind, s: item.s, g: item.g, level: item.level }));
       } else if (item.kind === 'titre') {
         extra.push(mark({ kind: 'titre', level: 1 }));
       }
@@ -153,10 +174,10 @@
       const s = Number(k);
       out[s] = Levels.afterSession(out[s], session.first[s], date);
     });
-    const versOk = session.history.filter((h) => h.ok && !h.souffle && (h.item.kind === 'vers' || h.item.kind === 'strophe')).length;
+    const versOk = session.history.filter((h) => h.ok && !h.souffle && h.item.kind !== 'ecoute' && h.item.kind !== 'titre').length;
     const reussies = Object.keys(session.first).filter((k) => session.first[k]).map(Number);
     return { states: out, bilan: { versOk, reussies, nouvelles: session.nouvelles.slice(), stopped: session.stopped } };
   }
 
-  return { LIMIT_MS, create, current, progress, answer, isOver, finish };
+  return { LIMIT_MS, create, current, progress, answer, isOver, finish, itemVers };
 });

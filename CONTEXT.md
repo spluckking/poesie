@@ -16,8 +16,12 @@ _Éviter_ : paragraphe, partie, morceau
 Une ligne de la poésie ; c'est l'unité de récitation et de vérification dans une séance.
 _Éviter_ : ligne, phrase
 
+**Groupe** :
+Deux à quatre vers d'une strophe qui forment une seule image ; c'est le morceau qu'on apprend d'un coup avant d'enchaîner la strophe. À l'écran, « partie ».
+_Éviter_ : bloc, morceau, couplet
+
 **Repère** :
-L'image (dessin de l'enfant ou pictogramme) et le geste associés à une strophe, choisis pendant la découverte ; l'image est le dernier indice avant le texte nu, et le premier souffle quand il n'y a plus rien.
+L'image (dessin de l'enfant ou pictogramme) et le geste associés à un groupe, choisis pendant la découverte ; l'image est le dernier indice avant le texte nu, et le premier souffle quand il n'y a plus rien.
 _Éviter_ : illustration, icône, mnémo
 
 **Mot difficile** :

@@ -8,7 +8,7 @@
 - Ne pas publier sur un site public : les poésies de classe sont souvent sous droit d'auteur. Hébergement sur le serveur de la maison (deploy/).
 
 ## Structure
-- index.html, manifest.webmanifest, css/style.css, sw.js (constante VERSION — actuellement `poesie-v2`).
+- index.html, manifest.webmanifest, css/style.css, sw.js (constante VERSION — actuellement `poesie-v3`).
 - js/ : audiokey (nom des fichiers voix), consignes (phrases dites à l'enfant), poem (lecture de poesie.txt), cues (niveaux d'indice), levels (niveau de chaque strophe), planner (planning jusqu'à la récitation), session (déroulé d'une séance), store, speech, app (écrans).
 - poem, cues, levels, planner, session sont des fonctions pures testées : `npm test` (node --test), à lancer avant chaque mise en ligne.
 - audio/voix/ : voix Denise (Azure) générée par `npm run voices` (vers, titre, mots difficiles, consignes). Clés AZURE_SPEECH_KEY et AZURE_SPEECH_REGION dans .env (ignoré par git) : ne jamais les afficher ni les commiter.
@@ -19,6 +19,7 @@
 Le parent envoie la photo de la feuille. Transcrire dans poesie.txt :
 - `# Titre`, `@ Auteur`, `= AAAA-MM-JJ` (date de récitation), `! mot | explication simple pour un CE2`.
 - Avant chaque strophe : `> émoji | geste : idée de geste simple` (proposer, le parent et l'enfant changeront).
+- Strophe de plus de 4 vers : la couper en groupes de sens de 2 à 4 vers (une image chacun) avec une ligne `> émoji | geste : …` à l'intérieur de la strophe, SANS ligne vide (la ligne vide reste réservée aux strophes de la feuille).
 - Les vers EXACTEMENT comme sur la feuille : ponctuation, majuscules, apostrophes. Une ligne vide entre les strophes.
 - Montrer la transcription au parent pour vérification AVANT tout le reste.
 - Puis `npm run voices`, `npm test`, augmenter VERSION dans sw.js, et mettre en ligne.

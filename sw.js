@@ -4,7 +4,7 @@
  * Les voix (audio/voix/) sont mises en cache au premier usage (préchargées au démarrage).
  * Changer VERSION force un recache complet.
  */
-const VERSION = 'poesie-v2';
+const VERSION = 'poesie-v3';
 
 const ASSETS = [
   './',

@@ -1,4 +1,5 @@
 // Transcrit de la feuille de la classe (3 strophes de 6 vers), vérifié le 19/11/2026.
+// Chaque strophe est coupée en 2 groupes de 3 vers (une image chacun), d'après le sens et les rimes.
 # Jour pluvieux d'automne
 @ Michel Beau
 = 2026-11-27
@@ -14,26 +15,29 @@
 ! des frissons | quand on tremble un peu, de froid ou de tristesse
 ! résonnent | on les entend bien, comme avec un écho
 
-> 🍂🌳 | geste : la main qui tourbillonne comme une feuille, puis les bras levés qui tremblent comme un arbre
+> 🍂 | geste : la main qui tourbillonne comme une feuille dans le vent
 Une feuille rousse
 Que le vent pousse
 Dans le ciel gris-bleu,
+> 🌳 | geste : les bras levés comme des branches, et on tremble de froid
 L'arbre nu qui tremble
 Et dans le bois semble
 Un homme frileux,
 
-> 💧🥀 | geste : un doigt qui tape sur la vitre, puis la main qui tombe toute molle
+> 💧 | geste : un doigt qui tape sur la vitre
 Une gouttelette
 Comme une fléchette
 Qui tape au carreau,
+> 🥀 | geste : la main qui tombe toute molle
 Une fleur jaunie
 Qui traîne sans vie
 Dans la flaque d'eau,
 
-> 🎵👣 | geste : on essuie une larme, puis on marche sur place en sifflant
+> 🎵 | geste : on essuie une larme
 Sur toutes les choses
 Des notes moroses,
 Des pleurs, des frissons,
+> 👣 | geste : on marche sur place en sifflant
 Des pas qui résonnent :
 C'est déjà l'automne
 qui marche en sifflant sa triste chanson.

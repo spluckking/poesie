@@ -259,3 +259,37 @@ table.planning { border-collapse: collapse; width: 100%; font-size: 18px; }
   .repere-moyen { font-size: 32px; }
   .repere-moyen img { width: 48px; height: 48px; }
 }
+
+/* Groupes de sens : l'image du groupe à gauche, ses vers à droite. */
+.groupe { display: flex; align-items: flex-start; gap: 14px; }
+.groupe + .groupe { margin-top: 8px; }
+.g-vers { flex: 1; min-width: 0; }
+.g-img { flex: none; line-height: 1; text-align: center; }
+.g-img img { object-fit: cover; border-radius: 10px; border: 2px solid var(--ligne-forte); display: block; }
+.g-moyen { font-size: 36px; width: 52px; }
+.g-moyen img { width: 52px; height: 52px; }
+.g-grand { font-size: 60px; width: 84px; }
+.g-grand img { width: 84px; height: 84px; }
+.strophe-lecture .groupe { margin: 6px 0; }
+
+/* « Touche les vers que tu as oubliés » */
+.vers.choix-vers { cursor: pointer; border: 2px dashed var(--ligne-forte); border-radius: 10px; padding: 0 10px; margin: 4px 0; }
+.vers.choix-vers[aria-pressed="true"] { background: var(--ko-fond); border: 2px solid var(--ko); }
+
+@media (max-height: 620px) {
+  .g-moyen { font-size: 28px; width: 40px; }
+  .g-moyen img { width: 40px; height: 40px; }
+  .g-grand { font-size: 44px; width: 60px; }
+  .g-grand img { width: 60px; height: 60px; }
+  .vers.choix-vers { margin: 2px 0; }
+}
+@media (max-width: 640px) {
+  .groupe { gap: 8px; }
+  .g-moyen { font-size: 26px; width: 36px; }
+  .g-moyen img { width: 36px; height: 36px; }
+  .g-grand { font-size: 40px; width: 52px; }
+  .g-grand img { width: 52px; height: 52px; }
+}
+@media (max-width: 640px) {
+  .vers.choix-vers { margin: 1px 0; padding: 0 6px; line-height: 1.35; }
+}

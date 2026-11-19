@@ -147,6 +147,12 @@ L'écran d'accueil a **un seul gros bouton**, « Ma séance », avec une consign
 - À tout moment, le bouton « **Souffle-moi** » fait entendre le mot suivant seulement. Un vers soufflé ne compte pas comme réussi.
 - « Pas pareil » : on réécoute le vers, l'enfant le redit au niveau du dessous, puis au niveau d'avant. C'est le retour immédiat qui empêche de mémoriser une erreur.
 
+**Ajouts du 19/11, après relecture d'une autre proposition (Gemini)** :
+- **Groupes de sens** : une strophe de plus de 4 vers est coupée en groupes de 2 à 4 vers (une image chacun). Une strophe nouvelle s'apprend groupe par groupe (échelle des vers, puis le groupe), puis entière. Raison : la mémoire de travail d'un enfant de 8 ans est petite. Chaque groupe a sa propre image : ainsi chaque image correspond à une seule idée.
+- **L'image comme premier souffle** : au niveau « Rien du tout », le premier « Souffle-moi » montre les images, avant de donner les mots.
+- **« Touche les vers oubliés »** : après « Pas pareil » sur une strophe ou un groupe, l'enfant montre les vers qui lui ont échappé, et on ne reprend que ceux-là. C'est plus court et plus ciblé. « Je ne sais plus » reprend tout.
+- Non retenu : le jeu des erreurs glissées dans le texte (entendre une version fausse risque de la mémoriser), les vers mélangés à remettre dans l'ordre (de la reconnaissance, plus faible que le rappel), un émoji par vers (trop d'indices, et ambigus), les images générées (passives), les rappels par calendrier (le planning de l'appli et le rituel du soir suffisent).
+
 **Les règles des niveaux** (par strophe, d'un jour à l'autre) :
 
 - La strophe est réussie à son niveau (tous les vers « pareil », sans souffle) → **+1 niveau**, au plus une fois par jour en dehors de la découverte de la strophe. Une réussite dans la même séance n'est que de la mémoire immédiate, qui est trompeuse.

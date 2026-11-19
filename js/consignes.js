@@ -21,6 +21,8 @@
     lis: 'Lis-le à voix haute.',
     dis: 'Dis-le à voix haute, puis appuie sur Vérifier.',
     disStrophe: 'Dis toute la strophe à voix haute, puis appuie sur Vérifier.',
+    disGroupe: 'Dis ces vers à voix haute, puis appuie sur Vérifier.',
+    quelVers: 'Touche les vers que tu as oubliés, puis appuie sur Continuer.',
     titre: 'Dis le titre et le nom de l\'auteur.',
     pont: 'On relie les deux strophes.',
     compare: 'Tu as dit pareil ?',

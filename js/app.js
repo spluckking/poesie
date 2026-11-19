@@ -52,10 +52,16 @@
       shapes[n % shapes.length] + '</g><ellipse cx="38" cy="30" rx="12" ry="7" fill="#fff6" transform="rotate(-30 38 30)"/></svg>';
   }
 
+  /** L'image d'un groupe : la photo de son dessin, sinon l'émoji. */
+  function groupeHtml(g) {
+    const ph = Store.photo(state.poemId, g.id);
+    if (ph) return '<img src="' + ph + '" alt="Mon dessin">';
+    return esc(g.repere.emoji || '✏️');
+  }
+
+  /** Les images de tous les groupes d'une strophe, dans l'ordre. */
   function repereHtml(s) {
-    const ph = Store.photo(state.poemId, s);
-    if (ph) return '<img src="' + ph + '" alt="Mon dessin de la strophe ' + (s + 1) + '">';
-    return esc(poem.strophes[s].repere.emoji || '✏️');
+    return poem.strophes[s].groupes.map(groupeHtml).join('');
   }
 
   function toast(text, doux) {
@@ -159,10 +165,13 @@
     Speech.stop();
     const st = poem.strophes.map((x, s) =>
       '<div class="strophe-lecture" style="--c:' + color(s) + '">' +
-      '<div class="barre"><span class="repere-grand" style="font-size:48px;margin:0">' + repereHtml(s) + '</span>' +
+      '<div class="barre"><b>Strophe ' + (s + 1) + '</b>' +
       '<button class="btn petit discret" data-a="ecouter-strophe" data-s="' + s + '">' + ICON.son + 'Écouter</button></div>' +
-      x.vers.map((v, i) => '<p class="vers" data-sv="' + s + '-' + i + '">' + esc(v) + '</p>').join('') +
-      (x.repere.geste ? '<p class="geste">Geste : ' + esc(x.repere.geste) + '</p>' : '') + '</div>').join('');
+      x.groupes.map((g) => '<div class="groupe"><div class="g-img g-moyen" aria-hidden="true">' + groupeHtml(g) + '</div><div class="g-vers">' +
+        x.vers.slice(g.debut, g.fin).map((v, i) => '<p class="vers" data-sv="' + s + '-' + (g.debut + i) + '">' + esc(v) + '</p>').join('') +
+        (g.repere.geste ? '<p class="geste">Geste : ' + esc(g.repere.geste) + '</p>' : '') + '</div></div>').join('') +
+      '</div>').join('');
+    const nbImages = poem.strophes.reduce((n, x) => n + x.groupes.length, 0);
     const mots = poem.words.length ? '<div class="bloc"><h2>Les mots à expliquer</h2><ul class="mots">' +
       poem.words.map((w, i) => '<li><button class="icone" data-a="mot" data-i="' + i + '" aria-label="Écouter">' + ICON.son + '</button><span><b>' +
         esc(w.w) + '</b> : ' + esc(w.explication) + '</span></li>').join('') + '</ul></div>' : '';
@@ -172,7 +181,7 @@
       '<div class="barre"><button class="icone" data-a="accueil" aria-label="Retour">' + ICON.retour + '</button><div style="flex:1"></div></div>' +
       '<h1 class="titre-poesie" data-sv="-1--1">' + esc(poem.title) + '</h1><p class="auteur">' + esc(poem.author) + '</p>' +
       '<div class="note">Pour l\'adulte (10 à 15 minutes) : écoutez la poésie ensemble, expliquez les mots, demandez « de quoi ça parle ? ». ' +
-      'Il dessine une image par strophe sur papier et choisit un geste. Prenez les dessins en photo dans l\'espace adulte. On n\'apprend rien par cœur aujourd\'hui.</div>' +
+      'Chaque image de la poésie (' + nbImages + ' en tout) : il la dessine sur papier, en petit, et fait le geste. Prenez les dessins en photo dans l\'espace adulte (onglet Repères). On n\'apprend rien par cœur aujourd\'hui.</div>' +
       '<div class="actions" style="margin-top:0"><button class="btn plein" data-a="ecouter-tout">' + ICON.jouer + 'Écouter toute la poésie</button></div>' +
       mots + '<div class="bloc"><h2>Les strophes</h2>' + st + '</div>' +
       (info.phase === 'decouverte' && !state.decouverteFaite
@@ -200,6 +209,7 @@
     if (it.purpose === 'pont' && it.level >= 2) return C.pont;
     if (it.kind === 'titre') return C.titre;
     if (it.kind === 'strophe') return it.purpose === 'rappel' ? C.rappel : C.disStrophe;
+    if (it.kind === 'groupe') return C.disGroupe;
     if (it.level === 0) return C.repete;
     if (it.level === 1) return C.lis;
     return C.dis;
@@ -224,7 +234,44 @@
   function itemLines(it) {
     if (it.kind === 'titre') return [poem.title, poem.author ? 'de ' + poem.author : ''].filter(Boolean);
     if (it.kind === 'vers') return [poem.strophes[it.s].vers[it.v]];
+    if (it.kind === 'groupe') { const g = poem.strophes[it.s].groupes[it.g]; return poem.strophes[it.s].vers.slice(g.debut, g.fin); }
     return poem.strophes[it.s].vers;
+  }
+
+  /** Indice dans la strophe du premier vers de l'étape. */
+  function firstVers(it) {
+    if (it.kind === 'groupe') return poem.strophes[it.s].groupes[it.g].debut;
+    if (it.kind === 'vers') return it.v;
+    return 0;
+  }
+
+  /**
+   * Une strophe (ou un groupe) présentée groupe par groupe : l'image du groupe à gauche, ses vers à droite.
+   * Taille de l'image : moyenne pendant l'apprentissage, grande au niveau 4, absente au niveau 5
+   * (le premier « Souffle-moi » la fait apparaître).
+   */
+  function groupsBlock(it, level, revealed) {
+    const st = poem.strophes[it.s];
+    const groupes = it.kind === 'groupe' ? [st.groupes[it.g]] : st.groupes;
+    const size = revealed || it.kind === 'ecoute' || it.level <= 3 ? 'moyen'
+      : it.level === 4 || ui.image ? 'grand' : '';
+    const base = firstVers(it);
+    return '<div class="strophe">' + groupes.map((g) => {
+      const img = size ? '<div class="g-img g-' + size + '" aria-hidden="true">' + groupeHtml(g) + '</div>' : '';
+      const lines = [];
+      for (let v = g.debut; v < g.fin; v++) {
+        const line = st.vers[v];
+        const sv = it.s + '-' + v;
+        if (ui.choisir) {
+          lines.push('<p class="vers choix-vers" role="button" data-a="choisir" data-v="' + v + '" aria-pressed="' + ui.missed.has(v) + '" data-sv="' + sv + '">' + esc(line) + '</p>');
+        } else if (it.kind === 'ecoute') {
+          lines.push('<p class="vers" data-sv="' + sv + '">' + esc(line) + '</p>');
+        } else {
+          lines.push(lineHtml(line, level, v - base, revealed ? 'revele' : '', sv));
+        }
+      }
+      return '<div class="groupe">' + img + '<div class="g-vers">' + lines.join('') + '</div></div>';
+    }).join('') + '</div>';
   }
 
   /** Un vers rendu au niveau donné ; li : numéro de la ligne dans l'étape (mots soufflés : ui.souffles). */
@@ -255,31 +302,28 @@
 
     let label, body = '';
     if (it.kind === 'titre') label = 'Le titre';
-    else label = 'Strophe ' + (it.s + 1) + (it.kind === 'vers' ? ' · vers ' + (it.v + 1) : '');
+    else label = 'Strophe ' + (it.s + 1) + (it.kind === 'vers' ? ' · vers ' + (it.v + 1) : it.kind === 'groupe' ? ' · partie ' + (it.g + 1) : '');
 
-    // L'image de la strophe : petite pendant l'apprentissage, seule au niveau 4,
-    // cachée au niveau 5 (le premier « Souffle-moi » la montre).
-    let rep = '';
-    if (it.kind !== 'titre') {
-      const big = !revealed && (it.level === 4 || (it.level >= 5 && ui.image));
-      const small = revealed || it.kind === 'ecoute' || it.level <= 3;
-      if (big) rep = '<div class="repere-grand' + (it.kind === 'strophe' ? ' compact' : '') + '">' + repereHtml(it.s) + '</div>';
-      else if (small) rep = '<div class="repere-moyen" aria-hidden="true">' + repereHtml(it.s) + '</div>';
-    }
-
-    if (it.kind === 'ecoute') {
-      body = rep + '<div class="strophe">' + lines.map((l, i) => '<p class="vers" data-sv="' + it.s + '-' + i + '">' + esc(l) + '</p>').join('') + '</div>';
+    if (it.kind === 'ecoute' || it.kind === 'strophe' || it.kind === 'groupe') {
+      body = groupsBlock(it, level, revealed);
     } else if (it.kind === 'vers') {
+      // L'image du groupe de ce vers : petite pendant l'apprentissage, seule au niveau 4,
+      // cachée au niveau 5 (le premier « Souffle-moi » la montre).
+      const g = Poem.groupOf(poem.strophes[it.s], it.v);
+      const big = !revealed && (it.level === 4 || (it.level >= 5 && ui.image));
+      const small = revealed || it.level <= 3;
+      const rep = big ? '<div class="repere-grand">' + groupeHtml(g) + '</div>'
+        : small ? '<div class="repere-moyen" aria-hidden="true">' + groupeHtml(g) + '</div>' : '';
       const avant = it.v > 0 ? '<p class="vers-avant">' + esc(poem.strophes[it.s].vers[it.v - 1]) + '</p>' : '';
       body = rep + avant + lineHtml(lines[0], level, 0, revealed ? 'revele' : '', it.s + '-' + it.v);
-    } else if (it.kind === 'strophe') {
-      body = rep + '<div class="strophe">' + lines.map((l, i) => lineHtml(l, level, i, revealed ? 'revele' : '', it.s + '-' + i)).join('') + '</div>';
     } else if (it.kind === 'titre') {
       body = '<div class="strophe">' + lines.map((l, i) => lineHtml(l, level, i, revealed ? 'revele' : '', 't-' + i)).join('') + '</div>';
     }
 
     let actions;
-    if (it.kind === 'ecoute') {
+    if (ui.choisir) {
+      actions = btn('choisir-tout', 'Je ne sais plus', 'discret') + btn('choisir-ok', 'Continuer', 'plein');
+    } else if (it.kind === 'ecoute') {
       actions = btn('encore', ICON.encore + 'Encore', 'discret') + btn('suivant', 'À moi !', 'plein');
     } else if (it.kind === 'vers' && it.level === 0 && !revealed) {
       actions = btn('encore', ICON.encore + 'Encore', 'discret') + btn('suivant', ICON.coche + 'J\'ai répété', 'plein');
@@ -298,7 +342,7 @@
       '<button class="icone" data-a="redire" aria-label="Réécouter la consigne">' + ICON.son + '</button></div>' +
       '<span class="puce" style="--c:' + (it.kind === 'titre' ? 'var(--encre)' : color(it.s)) + '">' + esc(label) + '</span>' +
       '<div class="scene">' + body + '</div>' +
-      '<p class="consigne">' + esc(revealed ? C.compare : itemConsigne(it)) + '</p>' +
+      '<p class="consigne">' + esc(ui.choisir ? C.quelVers : revealed ? C.compare : itemConsigne(it)) + '</p>' +
       '<div class="actions">' + actions + '</div>';
 
     if (!revealed) autoplay(it);
@@ -327,12 +371,14 @@
       surligne(it.s + '-' + it.v);
       return Speech.vers(poem.strophes[it.s].vers[it.v]).then(() => surligne(null));
     }
-    return Speech.strophe(poem.strophes[it.s].vers, (i) => surligne(it.s + '-' + i)).then((done) => { if (done) surligne(null); });
+    const base = firstVers(it);
+    return Speech.strophe(itemLines(it), (i) => surligne(it.s + '-' + (base + i))).then((done) => { if (done) surligne(null); });
   }
 
-  function answer(ok) {
+  function answer(ok, missed) {
     const it = Session.current(ui.session);
-    Session.answer(ui.session, { ok, souffle: ui.souffles.size > 0 || ui.image }, Date.now());
+    Session.answer(ui.session, { ok, souffle: ui.souffles.size > 0 || ui.image, missed: missed || [] }, Date.now());
+    ui.choisir = false;
     Speech.stop();
     if (it.kind !== 'ecoute' && !(it.level <= 1 && it.kind === 'vers')) {
       if (ok) { ding(); toast([C.bravo1, C.bravo2, C.bravo3][ui.session.history.length % 3]); }
@@ -461,14 +507,16 @@
   }
 
   function tabReperes() {
-    return '<p>Prenez en photo le dessin de chaque strophe : il remplace l\'émoji et sert d\'indice.</p>' +
-      poem.strophes.map((x, s) => {
-        const ph = Store.photo(state.poemId, s);
-        return '<div class="ligne-soir"><span class="nom">Strophe ' + (s + 1) + ' ' + esc(x.repere.emoji) + (x.repere.geste ? '<br><small class="geste">' + esc(x.repere.geste) + '</small>' : '') + '</span>' +
+    return '<p>Prenez en photo chaque dessin : il remplace l\'émoji et sert d\'indice.</p>' +
+      poem.strophes.map((x, s) => x.groupes.map((g, gi) => {
+        const ph = Store.photo(state.poemId, g.id);
+        const nom = 'Strophe ' + (s + 1) + (x.groupes.length > 1 ? ', partie ' + (gi + 1) : '');
+        return '<div class="ligne-soir"><span class="nom">' + nom + ' ' + esc(g.repere.emoji) +
+          '<br><small class="geste">« ' + esc(x.vers[g.debut]) + ' »' + (g.repere.geste ? ' · ' + esc(g.repere.geste) : '') + '</small></span>' +
           (ph ? '<img class="photo-rep" src="' + ph + '" alt="">' : '') +
-          '<label class="btn petit discret">Photo<input type="file" accept="image/*" capture="environment" data-photo="' + s + '" hidden></label>' +
-          (ph ? '<button class="btn petit ko" data-a="photo-retirer" data-s="' + s + '">Retirer</button>' : '') + '</div>';
-      }).join('');
+          '<label class="btn petit discret">Photo<input type="file" accept="image/*" capture="environment" data-photo="' + g.id + '" hidden></label>' +
+          (ph ? '<button class="btn petit ko" data-a="photo-retirer" data-s="' + g.id + '">Retirer</button>' : '') + '</div>';
+      }).join('')).join('');
   }
 
   function bindPhotos() {
@@ -531,7 +579,7 @@
       case 'ecouter-strophe': { const s = Number(el.dataset.s); return Speech.strophe(poem.strophes[s].vers, (i) => surligne(s + '-' + i)).then((d) => { if (d) surligne(null); }); }
       case 'mot': { const w = poem.words[Number(el.dataset.i)]; return Speech.mot(w.w + ' : ' + w.explication); }
       case 'quitter': return home();
-      case 'redire': return it && (ui.revealed ? Speech.consigne(C.compare) : Speech.consigne(itemConsigne(it)));
+      case 'redire': return it && Speech.consigne(ui.choisir ? C.quelVers : ui.revealed ? C.compare : itemConsigne(it));
       case 'encore': return it && playLines(it);
       case 'suivant': return answer(true);
       case 'souffle': {
@@ -548,7 +596,24 @@
         renderItem();
         return playLines(it);
       case 'pareil': return answer(true);
-      case 'pas-pareil': return answer(false);
+      case 'pas-pareil':
+        // Strophe ou groupe : l'enfant montre les vers oubliés, on ne reprend que ceux-là.
+        if ((it.kind === 'strophe' || it.kind === 'groupe') && !it.retry) {
+          Speech.stop();
+          ui.choisir = true;
+          ui.missed = new Set();
+          renderItem();
+          return Speech.consigne(C.quelVers);
+        }
+        return answer(false);
+      case 'choisir': {
+        const v = Number(el.dataset.v);
+        if (ui.missed.has(v)) ui.missed.delete(v); else ui.missed.add(v);
+        el.setAttribute('aria-pressed', String(ui.missed.has(v)));
+        return;
+      }
+      case 'choisir-ok': return answer(false, [...ui.missed]);
+      case 'choisir-tout': return answer(false, []);
       case 'note': {
         const box = el.closest('.choix');
         box.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(b === el)));

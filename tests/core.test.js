@@ -245,3 +245,55 @@ test('au-delà de 7 minutes, la séance s\'arrête à la fin de l\'étape', () =
   assert.ok(Session.isOver(s2));
   assert.ok(s2.stopped);
 });
+
+/* ---------------- groupes de sens ---------------- */
+
+const GROUPES = [
+  '# T', '@ A', '= 2026-11-27',
+  '> 🍂 | geste : feuille',
+  'v1', 'v2', 'v3',
+  '> 🌳 | geste : arbre',
+  'v4', 'v5', 'v6',
+  '',
+  '> 💧',
+  'w1', 'w2'
+].join('\n');
+
+test('« > » dans une strophe ouvre un groupe ; ligne vide = nouvelle strophe', () => {
+  const p = Poem.parse(GROUPES);
+  assert.equal(p.strophes.length, 2);
+  assert.equal(p.strophes[0].vers.length, 6);
+  assert.deepEqual(p.strophes[0].groupes.map((g) => [g.id, g.repere.emoji, g.debut, g.fin]), [[0, '🍂', 0, 3], [1, '🌳', 3, 6]]);
+  assert.deepEqual(p.strophes[1].groupes.map((g) => [g.id, g.debut, g.fin]), [[2, 0, 2]]);
+  assert.equal(p.strophes[0].repere.emoji, '🍂');
+  assert.equal(Poem.groupOf(p.strophes[0], 4).repere.emoji, '🌳');
+});
+
+test('sans « > » intérieur : un seul groupe par strophe (identifiant = numéro de strophe)', () => {
+  const p = Poem.parse(SAMPLE);
+  assert.deepEqual(p.strophes.map((st) => st.groupes.map((g) => g.id)), [[0], [1], [2]]);
+});
+
+test('strophe nouvelle en groupes : échelle des vers du groupe, le groupe, puis la strophe', () => {
+  const p = Poem.parse(GROUPES);
+  const s = Session.create(p, p.strophes.map(() => Levels.fresh()), { phase: 'apprentissage', nouvelles: [0] }, 0);
+  const seq = s.queue.map((x) => x.kind === 'vers' ? 'v' + x.v : x.kind + (x.g !== undefined ? x.g : ''));
+  const compact = seq.filter((x, i) => x !== seq[i - 1]);
+  assert.deepEqual(compact, ['ecoute', 'v0', 'v1', 'v2', 'groupe0', 'v3', 'v4', 'v5', 'groupe1', 'strophe']);
+});
+
+test('strophe ratée : seuls les vers désignés sont repris, puis la strophe', () => {
+  const states = poem.strophes.map(() => Levels.fresh());
+  states[0] = Object.assign(states[0], { intro: '2026-11-20', level: 3 });
+  const s = Session.create(poem, states, { phase: 'apprentissage', nouvelles: [] }, 0);
+  Session.answer(s, { ok: false, missed: [2] }, 1);
+  assert.deepEqual(s.queue.slice(0, 2).map((x) => [x.kind, x.v, x.level]), [['vers', 2, 2], ['strophe', undefined, 3]]);
+});
+
+test('groupe raté sans désignation : tous ses vers, puis le groupe', () => {
+  const p = Poem.parse(GROUPES);
+  const s = Session.create(p, p.strophes.map(() => Levels.fresh()), { phase: 'apprentissage', nouvelles: [0] }, 0);
+  while (Session.current(s).kind !== 'groupe' || Session.current(s).g !== 1) Session.answer(s, { ok: true }, 1);
+  Session.answer(s, { ok: false }, 2);
+  assert.deepEqual(s.queue.slice(0, 4).map((x) => [x.kind, x.v, x.g]), [['vers', 3, undefined], ['vers', 4, undefined], ['vers', 5, undefined], ['groupe', undefined, 1]]);
+});
