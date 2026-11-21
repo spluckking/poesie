@@ -4,7 +4,7 @@
  * Les voix (audio/voix/) sont mises en cache au premier usage (préchargées au démarrage).
  * Changer VERSION force un recache complet.
  */
-const VERSION = 'poesie-v3';
+const VERSION = 'poesie-v4';
 
 const ASSETS = [
   './',
@@ -21,6 +21,7 @@ const ASSETS = [
   './js/session.js',
   './js/store.js',
   './js/speech.js',
+  './js/dessin.js',
   './js/app.js',
   './fonts/andika-400.woff2',
   './fonts/andika-700.woff2',

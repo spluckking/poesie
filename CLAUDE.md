@@ -8,8 +8,8 @@
 - Ne pas publier sur un site public : les poésies de classe sont souvent sous droit d'auteur. Hébergement sur le serveur de la maison (deploy/).
 
 ## Structure
-- index.html, manifest.webmanifest, css/style.css, sw.js (constante VERSION — actuellement `poesie-v3`).
-- js/ : audiokey (nom des fichiers voix), consignes (phrases dites à l'enfant), poem (lecture de poesie.txt), cues (niveaux d'indice), levels (niveau de chaque strophe), planner (planning jusqu'à la récitation), session (déroulé d'une séance), store, speech, app (écrans).
+- index.html, manifest.webmanifest, css/style.css, sw.js (constante VERSION — actuellement `poesie-v4`).
+- js/ : audiokey (nom des fichiers voix), consignes (phrases dites à l'enfant), poem (lecture de poesie.txt), cues (niveaux d'indice), levels (niveau de chaque strophe), planner (planning jusqu'à la récitation), session (déroulé d'une séance), store, speech, dessin (feuille de dessin au stylet), app (écrans).
 - poem, cues, levels, planner, session sont des fonctions pures testées : `npm test` (node --test), à lancer avant chaque mise en ligne.
 - audio/voix/ : voix Denise (Azure) générée par `npm run voices` (vers, titre, mots difficiles, consignes). Clés AZURE_SPEECH_KEY et AZURE_SPEECH_REGION dans .env (ignoré par git) : ne jamais les afficher ni les commiter.
 - Tout nouveau fichier servi par l'appli doit être ajouté à ASSETS dans sw.js (sauf les voix, mises en cache au premier usage).

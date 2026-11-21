@@ -33,6 +33,10 @@
     encore: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 4v4h4"/></svg>',
     souffle: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></svg>',
     jouer: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>',
+    crayon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 0 1 3 3L8 19z"/><path d="M14.5 6.5l3 3"/></svg>',
+    trait: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M5 8h14" stroke-width="2"/><path d="M5 16h14" stroke-width="5"/></svg>',
+    gomme: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M14 4l6 6-9 9H6l-3-3z"/><path d="M9 9l6 6"/><path d="M11 20h9" stroke-linecap="round"/></svg>',
+    annuler: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg>',
     retour: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>'
   };
 
@@ -163,13 +167,16 @@
 
   function decouverte() {
     Speech.stop();
+    ui = {};
     const st = poem.strophes.map((x, s) =>
       '<div class="strophe-lecture" style="--c:' + color(s) + '">' +
       '<div class="barre"><b>Strophe ' + (s + 1) + '</b>' +
       '<button class="btn petit discret" data-a="ecouter-strophe" data-s="' + s + '">' + ICON.son + 'Écouter</button></div>' +
       x.groupes.map((g) => '<div class="groupe"><div class="g-img g-moyen" aria-hidden="true">' + groupeHtml(g) + '</div><div class="g-vers">' +
         x.vers.slice(g.debut, g.fin).map((v, i) => '<p class="vers" data-sv="' + s + '-' + (g.debut + i) + '">' + esc(v) + '</p>').join('') +
-        (g.repere.geste ? '<p class="geste">Geste : ' + esc(g.repere.geste) + '</p>' : '') + '</div></div>').join('') +
+        (g.repere.geste ? '<p class="geste">Geste : ' + esc(g.repere.geste) + '</p>' : '') +
+        '<button class="btn petit discret" data-a="dessiner" data-g="' + g.id + '">' + ICON.crayon + (Store.photo(state.poemId, g.id) ? 'Changer le dessin' : 'Dessiner') + '</button>' +
+        '</div></div>').join('') +
       '</div>').join('');
     const nbImages = poem.strophes.reduce((n, x) => n + x.groupes.length, 0);
     const mots = poem.words.length ? '<div class="bloc"><h2>Les mots à expliquer</h2><ul class="mots">' +
@@ -406,14 +413,98 @@
     if (b.stopped) lignes.push('On s\'arrête là pour aujourd\'hui, c\'est très bien.');
     if (!lignes.length) lignes.push('Tu t\'es bien entraîné.');
 
+    // Les images pas encore dessinées des strophes apprises aujourd'hui : proposées, jamais imposées.
+    const aDessiner = [];
+    b.nouvelles.forEach((s) => poem.strophes[s].groupes.forEach((g) => { if (!Store.photo(state.poemId, g.id)) aDessiner.push(g.id); }));
+    ui.aDessiner = aDessiner;
+
     app.className = 'page';
     app.innerHTML = marge(nouvelle) +
       '<div class="fin">' + gommette(state.gommettes.length - 1) +
       '<h1>Séance finie !</h1>' + lignes.map((l) => '<p>' + esc(l) + '</p>').join('') +
       '<p class="consigne">' + (ui.session.phase === 'jour' ? 'Bonne récitation en classe !' : 'Ce soir, récite ta poésie à un adulte.') + '</p></div>' +
-      '<div class="actions">' + btn('accueil', 'Retour à ma poésie', 'plein') + '</div>';
+      '<div class="actions">' + (aDessiner.length ? btn('dessiner-nouvelles', ICON.crayon + 'Dessiner mes images', 'discret') : '') +
+      btn('accueil', 'Retour à ma poésie', 'plein') + '</div>';
     if (ui.session.phase !== 'jour') Speech.consigne(C.fin);
     badge();
+  }
+
+  /* ---------------- Dessin d'une image (stylet ou doigt) ---------------- */
+
+  const CRAYONS = ['#1f3b8c', '#2b2d42', '#e63946', '#f06d00', '#e3b400', '#2a9d8f', '#3a86ff', '#7b4fbf', '#8b5a2b'];
+
+  function groupeParId(gid) {
+    for (let s = 0; s < poem.strophes.length; s++) {
+      const gi = poem.strophes[s].groupes.findIndex((g) => g.id === gid);
+      if (gi >= 0) return { s, gi, g: poem.strophes[s].groupes[gi] };
+    }
+    return null;
+  }
+
+  /** Dessiner les images des groupes `gids`, l'une après l'autre, puis appeler `retour`. */
+  function dessiner(gids, retour) {
+    Speech.stop();
+    const gid = gids[0];
+    const x = groupeParId(gid);
+    if (!x) return retour();
+    const st = poem.strophes[x.s];
+    const vers = st.vers.slice(x.g.debut, x.g.fin);
+    ui = { dessin: { gids, retour, effacer: false } };
+    const label = 'Strophe ' + (x.s + 1) + (st.groupes.length > 1 ? ' · partie ' + (x.gi + 1) : '');
+    app.className = 'page';
+    app.innerHTML = marge() +
+      '<div class="barre"><button class="icone" data-a="dessin-retour" aria-label="Retour sans enregistrer">' + ICON.retour + '</button>' +
+      '<span class="puce" style="--c:' + color(x.s) + ';margin-top:0">' + esc(label) + '</span><div style="flex:1"></div>' +
+      '<button class="icone" data-a="dessin-ecouter" aria-label="Écouter les vers">' + ICON.son + '</button></div>' +
+      '<div class="dessin-zone">' +
+      '<div class="dessin-vers">' + vers.map((v, i) => '<p data-sv="' + x.s + '-' + (x.g.debut + i) + '">' + esc(v) + '</p>').join('') + '</div>' +
+      '<canvas class="feuille" aria-label="Feuille de dessin"></canvas>' +
+      '<div class="outils" role="toolbar" aria-label="Crayons">' +
+      CRAYONS.map((c, i) => '<button class="crayon" data-a="crayon" data-c="' + c + '" style="--c:' + c + '" aria-label="Couleur ' + (i + 1) + '" aria-pressed="' + (i === 0) + '"></button>').join('') +
+      '<button class="outil" data-a="taille" aria-label="Trait fin ou épais">' + ICON.trait + '</button>' +
+      '<button class="outil" data-a="gomme" aria-pressed="false" aria-label="Gomme">' + ICON.gomme + '</button>' +
+      '<button class="outil" data-a="dessin-annuler" aria-label="Annuler le dernier trait">' + ICON.annuler + '</button>' +
+      '<button class="outil" data-a="dessin-effacer" aria-label="Tout effacer">' + ICON.croix + '</button>' +
+      '</div></div>' +
+      '<div class="actions">' + btn('dessin-fini', ICON.coche + 'C\'est fini', 'ok') + '</div>';
+    ui.dessin.pad = Dessin.mount(app.querySelector('.feuille'), { initial: Store.photo(state.poemId, gid) });
+    ui.dessin.epais = false;
+    Speech.consigne(C.dessine).then((done) => {
+      if (done) Speech.strophe(vers, (i) => surligne(x.s + '-' + (x.g.debut + i))).then((d) => { if (d) surligne(null); });
+    });
+  }
+
+  function dessinAction(a, el) {
+    const d = ui.dessin;
+    if (!d) return;
+    const press = (sel, on) => app.querySelectorAll(sel).forEach((b) => b.setAttribute('aria-pressed', String(b === on)));
+    switch (a) {
+      case 'crayon': d.pad.setColor(el.dataset.c); press('.crayon', el); press('[data-a=gomme]', null); return;
+      case 'gomme': d.pad.setEraser(true); press('.crayon', null); el.setAttribute('aria-pressed', 'true'); return;
+      case 'taille': d.epais = !d.epais; d.pad.setSize(d.epais ? 22 : 10); el.classList.toggle('epais', d.epais); return;
+      case 'dessin-annuler': d.pad.undo(); return;
+      case 'dessin-effacer':
+        // Deux appuis pour tout effacer : un geste de trop ne perd pas le dessin.
+        if (!d.effacer) { d.effacer = true; el.classList.add('confirmer'); toast('Encore une fois pour tout effacer', true); setTimeout(() => { d.effacer = false; el.classList.remove('confirmer'); }, 2500); return; }
+        d.effacer = false; el.classList.remove('confirmer'); d.pad.clear(); return;
+      case 'dessin-ecouter': {
+        const x = groupeParId(d.gids[0]);
+        const vers = poem.strophes[x.s].vers.slice(x.g.debut, x.g.fin);
+        Speech.strophe(vers, (i) => surligne(x.s + '-' + (x.g.debut + i))).then((done) => { if (done) surligne(null); });
+        return;
+      }
+      case 'dessin-retour': Speech.stop(); return d.retour();
+      case 'dessin-fini': {
+        Speech.stop();
+        if (!d.pad.isEmpty()) {
+          if (!Store.setPhoto(state.poemId, d.gids[0], d.pad.toDataURL())) { toast('Mémoire pleine', true); return; }
+          ding();
+          toast('Bravo !');
+        }
+        const rest = d.gids.slice(1);
+        return setTimeout(() => (rest.length ? dessiner(rest, d.retour) : d.retour()), 500);
+      }
+    }
   }
 
   /* ---------------- Espace adulte ---------------- */
@@ -514,6 +605,7 @@
         return '<div class="ligne-soir"><span class="nom">' + nom + ' ' + esc(g.repere.emoji) +
           '<br><small class="geste">« ' + esc(x.vers[g.debut]) + ' »' + (g.repere.geste ? ' · ' + esc(g.repere.geste) : '') + '</small></span>' +
           (ph ? '<img class="photo-rep" src="' + ph + '" alt="">' : '') +
+          '<button class="btn petit discret" data-a="dessiner" data-g="' + g.id + '">' + ICON.crayon + 'Dessiner</button>' +
           '<label class="btn petit discret">Photo<input type="file" accept="image/*" capture="environment" data-photo="' + g.id + '" hidden></label>' +
           (ph ? '<button class="btn petit ko" data-a="photo-retirer" data-s="' + g.id + '">Retirer</button>' : '') + '</div>';
       }).join('')).join('');
@@ -567,9 +659,16 @@
     const el = e.target.closest('[data-a]');
     if (!el) return;
     const a = el.dataset.a;
+    if (ui.dessin && (a === 'crayon' || a === 'gomme' || a === 'taille' || a.startsWith('dessin-'))) return dessinAction(a, el);
     const it = ui.session && Session.current(ui.session);
     switch (a) {
       case 'accueil': return home();
+      case 'dessiner': {
+        const gid = Number(el.dataset.g);
+        const depuis = ui.tab ? () => parent('reperes') : decouverte;
+        return dessiner([gid], depuis);
+      }
+      case 'dessiner-nouvelles': return dessiner(ui.aDessiner || [], home);
       case 'adulte': return gate();
       case 'dire': return Speech.consigne(ui.dire || C.accueil);
       case 'seance': return startSeance();
@@ -677,7 +776,7 @@
     Speech.setEnabled(state.settings.sound);
     Speech.preload(poem, titleText(), C);
     home();
-    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && !ui.session && !ui.tab) home(); });
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && !ui.session && !ui.tab && !ui.dessin) home(); });
   }
 
   if ('serviceWorker' in navigator && location.protocol !== 'file:') {

@@ -293,3 +293,57 @@ table.planning { border-collapse: collapse; width: 100%; font-size: 18px; }
 @media (max-width: 640px) {
   .vers.choix-vers { margin: 1px 0; padding: 0 6px; line-height: 1.35; }
 }
+
+/* ---------- Dessin au stylet ---------- */
+.dessin-zone {
+  flex: 1; min-height: 0; margin-top: 10px;
+  display: grid; gap: 12px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-areas: "vers vers" "feuille outils";
+}
+.dessin-vers { grid-area: vers; color: var(--encre); font-size: 22px; line-height: 1.35; }
+.dessin-vers p { margin: 0; }
+.dessin-vers p.lu { background: color-mix(in srgb, var(--c4) 16%, transparent); border-radius: 6px; }
+.feuille {
+  grid-area: feuille; justify-self: center; align-self: stretch;
+  height: 100%; max-width: 100%; aspect-ratio: 1; min-height: 0;
+  background: #fff; border: 3px solid var(--ligne-forte); border-radius: 14px;
+  touch-action: none; cursor: crosshair;
+}
+.outils { grid-area: outils; display: grid; grid-template-columns: repeat(2, 52px); gap: 8px; align-content: start; }
+.crayon {
+  width: 52px; height: 52px; border-radius: 50%; border: 3px solid #fff;
+  background: var(--c); box-shadow: 0 0 0 2px var(--ligne-forte);
+}
+.crayon[aria-pressed="true"] { box-shadow: 0 0 0 4px var(--graphite); transform: scale(1.06); }
+.outil {
+  width: 52px; height: 52px; border-radius: 14px; border: 2px solid var(--encre-pale);
+  background: var(--papier); color: var(--encre); display: grid; place-items: center;
+}
+.outil svg { width: 28px; height: 28px; }
+.outil[aria-pressed="true"], .outil.epais { background: var(--encre); color: #fff; border-color: var(--encre); }
+.outil.confirmer { background: var(--ko); color: #fff; border-color: var(--ko); }
+.crayon:focus-visible, .outil:focus-visible { outline: 4px solid var(--c4); outline-offset: 2px; }
+
+/* Portrait : les crayons passent sous la feuille. */
+@media (orientation: portrait) {
+  .dessin-zone { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto; grid-template-areas: "vers" "feuille" "outils"; }
+  .outils { grid-template-columns: repeat(7, 44px); justify-content: center; }
+  .crayon, .outil { width: 44px; height: 44px; }
+}
+@media (max-height: 620px) {
+  .dessin-vers { font-size: 17px; }
+}
+@media (orientation: landscape) {
+  .outils { grid-template-columns: repeat(3, 52px); }
+}
+@media (orientation: landscape) and (max-height: 620px) {
+  .outils { grid-template-columns: repeat(3, 42px); gap: 6px; }
+  .crayon, .outil { width: 42px; height: 42px; }
+  .outil svg { width: 24px; height: 24px; }
+}
+@media (orientation: portrait) and (min-width: 600px) {
+  .outils { grid-template-columns: repeat(7, 54px); gap: 10px; }
+  .crayon, .outil { width: 54px; height: 54px; }
+}
